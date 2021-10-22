@@ -69,6 +69,7 @@ namespace Fake.API.Controllers
         [Authorize(AuthenticationSchemes = "Bearer")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTouristRoutePictureAsync(
+            //(7-4)
             [FromRoute] Guid touristRouteId,
             [FromBody] TouristRoutePictureForCreationDto touristRoutePictureForCreationDto)
         {

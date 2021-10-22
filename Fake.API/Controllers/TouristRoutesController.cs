@@ -31,10 +31,17 @@ namespace Fake.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTouristRoutesAsync([FromQuery] TouristRouteResourceParameters parameters)
+        public async Task<IActionResult> GetTouristRoutesAsync(
+            [FromQuery] TouristRouteResourceParameters touristRoute,
+            [FromQuery] PaginationResourceParameters pagination)
         {
             var touristRoutesFromRepo = await _touristRouteRepository
-                .GetTouristRoutesAsync(parameters.Keyword, parameters.OperatorType, parameters.RatingValue);
+                .GetTouristRoutesAsync(
+                touristRoute.Keyword, 
+                touristRoute.OperatorType, 
+                touristRoute.RatingValue,
+                pagination.PageSize,
+                pagination.PageNumber);
             if (touristRoutesFromRepo == null || touristRoutesFromRepo.Count() == 0)
             {
                 return NotFound("沒有旅遊路線");
@@ -45,7 +52,7 @@ namespace Fake.API.Controllers
             return Ok(touristRouteDto);
         }
 
-        [HttpGet("{touristRouteId}", Name = "GetTouristRoutesByIdAsync")]
+        [HttpGet("{touristRouteId}", Name = "GetTouristRoutesByIdAsync")] //Name: route Name
         public async Task<IActionResult> GetTouristRoutesByIdAsync(Guid touristRouteId)
         {
             var touristRouteFromRepo = await _touristRouteRepository.GetTouristRouteAsync(touristRouteId);
@@ -75,6 +82,7 @@ namespace Fake.API.Controllers
 
             var touristRouteDto = _mapper.Map<TouristRouteDto>(touristRouteModel);
 
+            //(7-3) HATOAS: 回傳 body:touristRouteDto, 同時也回傳 header location: GET 旅遊路線URL
             return CreatedAtRoute(
                     "GetTouristRoutesByIdAsync",
                     new { touristRouteId = touristRouteDto.Id },

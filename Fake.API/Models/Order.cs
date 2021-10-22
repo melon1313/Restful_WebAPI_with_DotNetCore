@@ -50,9 +50,25 @@ namespace Fake.API.Models
 
         private StateMachine<OrderStateEnum, OrderStateTriggerEnum> _machine { get; set; }
     
+        public void PaymentProcessing()
+        {
+            _machine.Fire(OrderStateTriggerEnum.PlaceOrder);
+        }
+
+        public void PaymentApprove()
+        {
+            _machine.Fire(OrderStateTriggerEnum.Approve);
+        }
+
+        public void PaymentReject()
+        {
+            _machine.Fire(OrderStateTriggerEnum.Reject);
+        }
+
         private void StateMachineInit()
         {
-            _machine = new StateMachine<OrderStateEnum, OrderStateTriggerEnum>(OrderStateEnum.Pending);
+            _machine = new StateMachine<OrderStateEnum, OrderStateTriggerEnum>(
+                () => State, s => State = s);
 
             //訂單已生成
             _machine.Configure(OrderStateEnum.Pending)

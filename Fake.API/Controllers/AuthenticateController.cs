@@ -57,7 +57,9 @@ namespace Fake.API.Controllers
             var user = await _userManager.FindByNameAsync(loginDto.Email);
 
             //2. 產jwt  (header -> payload -> signature)
+            //header
             var signingAlgorithm = SecurityAlgorithms.HmacSha256;
+            //payload
             var claims = new List<Claim>
             {
                 //sub
@@ -72,6 +74,7 @@ namespace Fake.API.Controllers
                 claims.Add(roleClaim);
             }
 
+            //signature
             var secretByte = Encoding.UTF8.GetBytes(_configuration["Authentication:SecretKey"]);
             var signingKey = new SymmetricSecurityKey(secretByte); //非對稱式算法
             var signingCredentails = new SigningCredentials(signingKey, signingAlgorithm);

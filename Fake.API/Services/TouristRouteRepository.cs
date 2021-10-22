@@ -1,4 +1,5 @@
 ﻿using Fake.API.Database;
+using Fake.API.Helper;
 using Fake.API.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -27,25 +28,29 @@ namespace Fake.API.Services
             return await _context.TouristRoutePictures.Where(item => item.TouristRouteId == touristRouteId).ToListAsync();
         }
 
-        public async Task<IEnumerable<TouristRoute>> GetTouristRoutesAsync(string keyword, string operatorType, int? ratingValue)
+        public async Task<PaginationList<TouristRoute>> GetTouristRoutesAsync(string keyword, string operatorType, int? ratingValue, int pageSize, int pageNumber)
         {
             IQueryable<TouristRoute> result = _context.TouristRoutes.Include(item => item.TouristRoutePictures);
 
             if (!string.IsNullOrEmpty(keyword))
             {
                 keyword = keyword.Trim();
+
+                //TODO:在進行分頁同時查詢關鍵字時，會有bug，流程應改成取得關鍵字後的集合再進行分頁。注意Linq的延遲執行。
                 result = result.Where(item => item.Title.Contains(keyword));
             }
 
-            if (ratingValue <= 0) return await result.ToListAsync();
+            if (ratingValue >= 0)
+            {
+                result = operatorType.ToLower() switch
+                {
+                    "largerthan" => result.Where(item => item.Rating > ratingValue),
+                    "lessthan" => result.Where(item => item.Rating < ratingValue),
+                    _ => result.Where(item => item.Rating == ratingValue)
+                };
+            }
 
-            result = operatorType.ToLower() switch {
-                "largerthan" => result.Where(item => item.Rating > ratingValue),
-                "lessthan" => result.Where(item => item.Rating < ratingValue),
-                _ => result.Where(item => item.Rating == ratingValue)
-            };
-
-            return await result.ToListAsync();
+            return await PaginationList<TouristRoute>.CreateAsync(pageNumber, pageSize, result);
         }
 
         public async Task<bool> TouristRouteExistsAsync(Guid touristRouteId)

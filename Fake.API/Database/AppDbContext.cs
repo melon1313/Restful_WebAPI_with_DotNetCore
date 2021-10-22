@@ -36,6 +36,7 @@ namespace Fake.API.Database
             //    CreateTime = DateTime.UtcNow
             //});
 
+            //假資料
             var touristRouteJsonData = File.ReadAllText(@"C:/西瓜瓜\學習/DotNetCore_WebAPI/Fake.API/Fake.API/Database/touristRoutesMockData.json");
             IList<TouristRoute> touristRoutes = JsonConvert.DeserializeObject<IList<TouristRoute>>(touristRouteJsonData);
             modelBuilder.Entity<TouristRoute>().HasData(touristRoutes);

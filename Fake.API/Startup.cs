@@ -54,9 +54,18 @@ namespace Fake.API
                     };
                 }
                 );
-            services.AddControllers(setUpAction => { setUpAction.ReturnHttpNotAcceptable = true; })
+
+            //加入MVC架構中的控制器服務
+            //加入Web API的內容協商
+            services.AddControllers(
+                    //只允許回傳已設定好的格式
+                    setUpAction => { setUpAction.ReturnHttpNotAcceptable = true; }
+                )
+                //JsonPatch 允許序列化
                 .AddNewtonsoftJson(setupAction => { setupAction.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver(); })
+                //允許回傳XML格式
                 .AddXmlDataContractSerializerFormatters();
+
             services.AddTransient<ITouristRouteRepository, TouristRouteRepository>();
             services.AddDbContext<AppDbContext>(option =>
             {
@@ -64,6 +73,9 @@ namespace Fake.API
             });
 
             services.AddAutoMapper(typeof(Startup));
+
+            //註冊http請求服務
+            services.AddHttpClient();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
