@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Fake.API.Dtos;
+using Fake.API.Helper;
 using Fake.API.Models;
 using Fake.API.ResourceParameters;
 using Fake.API.Services;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Fake.API.Controllers
 {
@@ -21,16 +24,57 @@ namespace Fake.API.Controllers
     {
         private ITouristRouteRepository _touristRouteRepository;
         private readonly IMapper _mapper;
+        private readonly IUrlHelper _urlHelper;
 
         public TouristRoutesController(
             ITouristRouteRepository touristRouteRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IUrlHelperFactory urlHelperFactory,
+            IActionContextAccessor actionContextAccessor)
         {
             _touristRouteRepository = touristRouteRepository;
             _mapper = mapper;
+            _urlHelper = urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
         }
 
-        [HttpGet]
+        private string GenerateTouristRouteResourceURL(
+            TouristRouteResourceParameters touristRoute,
+            PaginationResourceParameters pagination,
+            ResourceUriType resourceUriType)
+        {
+            return resourceUriType switch
+            {
+                ResourceUriType.PreviousPage => _urlHelper.Link(nameof(GetTouristRoutesAsync),
+                    new
+                    {
+                        keyword = touristRoute.Keyword,
+                        rating = touristRoute.Rating,
+                        pageNumber = pagination.PageNumber -1,
+                        pageSize = pagination.PageSize
+                    }
+                ),
+                ResourceUriType.NextPage => _urlHelper.Link(nameof(GetTouristRoutesAsync),
+                   new
+                   {
+                       keyword = touristRoute.Keyword,
+                       rating = touristRoute.Rating,
+                       pageNumber = pagination.PageNumber + 1,
+                       pageSize = pagination.PageSize
+                   }
+               ),
+               _ => _urlHelper.Link(nameof(GetTouristRoutesAsync),
+                   new
+                   {
+                       keyword = touristRoute.Keyword,
+                       rating = touristRoute.Rating,
+                       pageNumber = pagination.PageNumber,
+                       pageSize = pagination.PageSize
+                   }
+               ),
+            };
+        }
+
+        [HttpGet(Name = nameof(GetTouristRoutesAsync))]
         public async Task<IActionResult> GetTouristRoutesAsync(
             [FromQuery] TouristRouteResourceParameters touristRoute,
             [FromQuery] PaginationResourceParameters pagination)
@@ -48,6 +92,23 @@ namespace Fake.API.Controllers
             }
 
             var touristRouteDto = _mapper.Map<IEnumerable<TouristRouteDto>>(touristRoutesFromRepo);
+
+            var previousPageLink = touristRoutesFromRepo.HasPrevious ? GenerateTouristRouteResourceURL(touristRoute, pagination, ResourceUriType.PreviousPage) : null;
+            var nextPageLink = touristRoutesFromRepo.HasNext ? GenerateTouristRouteResourceURL(touristRoute, pagination, ResourceUriType.NextPage) : null;
+
+            //x-pagination
+            var paginationMetadata = new
+            {
+                previousPageLink,
+                nextPageLink,
+                totalCount = touristRoutesFromRepo.TotalCount,
+                pageSize = touristRoutesFromRepo.PageSize,
+                currentPage = touristRoutesFromRepo.CurrentPage,
+                totalPages = touristRoutesFromRepo.TotalPages
+            };
+
+            Response.Headers.Add("x-pagination",
+                Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
 
             return Ok(touristRouteDto);
         }

@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Fake.API.Dtos;
+using Fake.API.ResourceParameters;
 using Fake.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -38,14 +39,15 @@ namespace Fake.API.Controllers
 
         [HttpGet]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        public async Task<IActionResult> GetOrders()
+        public async Task<IActionResult> GetOrdersAsync(
+            [FromQuery] PaginationResourceParameters pagination)
         {
             //1. 獲得當前用戶
             var userId = _httpContextAccessor
                 .HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //2. 使用用戶id來獲取訂單歷史紀錄
-            var orders = await _touristRouteRepository.GetOrdersByUserId(userId);
+            var orders = await _touristRouteRepository.GetOrdersByUserId(userId, pagination.PageSize, pagination.PageNumber);
 
             var ordersDto = _mapper.Map<IEnumerable<OrderDto>>(orders);
 
@@ -54,7 +56,7 @@ namespace Fake.API.Controllers
 
         [HttpGet("{orderId}")]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        public async Task<IActionResult> GetOrderById([FromRoute]Guid orderId)
+        public async Task<IActionResult> GetOrderByIdAsync([FromRoute]Guid orderId)
         {
             //1. 獲得當前用戶
             var userId = _httpContextAccessor
@@ -70,7 +72,7 @@ namespace Fake.API.Controllers
 
         [HttpPost("{orderId}/placeOrder")]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        public async Task<IActionResult> PlaceOrder([FromRoute] Guid orderId)
+        public async Task<IActionResult> PlaceOrderAsync([FromRoute] Guid orderId)
         {
             //1. 獲得當前用戶
             var userId = _httpContextAccessor

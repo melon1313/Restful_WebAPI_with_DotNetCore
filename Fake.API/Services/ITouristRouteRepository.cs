@@ -24,7 +24,7 @@ namespace Fake.API.Services
         Task<LineItem> GetShoppingCartItemByItemId(int itemId);
         void DeleteShoppingCartItem(LineItem lineItem);
         Task AddOrderAsync(Order order);
-        Task<IEnumerable<Order>> GetOrdersByUserId(string userId);
+        Task<PaginationList<Order>> GetOrdersByUserId(string userId, int pageSize, int pageNumber);
         Task<Order> GetOrderById(Guid orderId);
         Task<bool> SaveAsync();
     }

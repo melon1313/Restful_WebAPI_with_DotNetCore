@@ -10,16 +10,25 @@ namespace Fake.API.Helper
     {
         public int CurrentPage { get; set; }
         public int PageSize { get; set; }
+        public int TotalPages { get; private set; }
+        public int TotalCount { get; private set; }
+        public bool HasPrevious => CurrentPage > 1;
+        public bool HasNext => CurrentPage < TotalPages;
 
-        public PaginationList(int currentPage, int pageSize, List<T> items)
+        public PaginationList(int totalCount, int currentPage, int pageSize, List<T> items)
         {
             CurrentPage = currentPage;
             PageSize = pageSize;
+            TotalCount = totalCount;
+            TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+
             AddRange(items);
         }
 
         public static async Task<PaginationList<T>> CreateAsync(int currentPage, int pageSize, IQueryable<T> result)
         {
+            var totalCount = await result.CountAsync();
+
             //pagination
             //skip
             var skip = (currentPage - 1) * pageSize;
@@ -30,7 +39,7 @@ namespace Fake.API.Helper
 
             var items = await result.ToListAsync();
 
-            return new PaginationList<T>(currentPage, pageSize, items);
+            return new PaginationList<T>(totalCount, currentPage, pageSize, items);
         } 
     }
 }
