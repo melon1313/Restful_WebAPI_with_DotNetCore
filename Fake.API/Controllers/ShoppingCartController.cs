@@ -40,7 +40,7 @@ namespace Fake.API.Controllers
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //2. 使用userid獲得購物車
-            var shoppingCart = await _touristRouteRepository.GetShoppingCartByUserId(userId);
+            var shoppingCart = await _touristRouteRepository.GetShoppingCartByUserIdAsync(userId);
 
             var shoppingCartDto = _mapper.Map<ShoppingCartDto>(shoppingCart);
 
@@ -56,7 +56,7 @@ namespace Fake.API.Controllers
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //2. 使用userid獲得購物車
-            var shoppingCart = await _touristRouteRepository.GetShoppingCartByUserId(userId);
+            var shoppingCart = await _touristRouteRepository.GetShoppingCartByUserIdAsync(userId);
 
             //3. 創建lineItem
             var touristRoute = await _touristRouteRepository
@@ -72,7 +72,7 @@ namespace Fake.API.Controllers
             };
 
             // 4. 添加lineItem，並保存至DB
-            await _touristRouteRepository.AddShoppingCartItem(lineItem);
+            await _touristRouteRepository.AddShoppingCartItemAsync(lineItem);
             await _touristRouteRepository.SaveAsync();
 
             var shoppingCartDto = _mapper.Map<ShoppingCartDto>(shoppingCart);
@@ -85,7 +85,7 @@ namespace Fake.API.Controllers
         public async Task<IActionResult> DeleteShoppingCartItem([FromRoute] int itemId)
         {
             //1. 獲取lineItem數據
-            var lineItem = await _touristRouteRepository.GetShoppingCartItemByItemId(itemId);
+            var lineItem = await _touristRouteRepository.GetShoppingCartItemByItemIdAsync(itemId);
             if (lineItem == null) return NotFound("購物車商品找不到!");
 
             _touristRouteRepository.DeleteShoppingCartItem(lineItem);
@@ -103,7 +103,7 @@ namespace Fake.API.Controllers
                 .FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //2. 使用userId獲得購物車
-            var shoppingCarrt = await _touristRouteRepository.GetShoppingCartByUserId(userId);
+            var shoppingCarrt = await _touristRouteRepository.GetShoppingCartByUserIdAsync(userId);
 
             // 3. 創建訂單
             var order = new Order()

@@ -9,7 +9,7 @@ namespace Fake.API.Services
 {
     public interface ITouristRouteRepository
     {
-        Task<PaginationList<TouristRoute>> GetTouristRoutesAsync(string keyword, string operatorType, int? ratingValue, int pageSize, int pageNumber);
+        Task<PaginationList<TouristRoute>> GetTouristRoutesAsync(string keyword, string operatorType, int? ratingValue, int pageSize, int pageNumber, string orderBy);
         Task<TouristRoute> GetTouristRouteAsync(Guid touristRouteId);
         Task<bool> TouristRouteExistsAsync(Guid touristRouteId);
         Task<IEnumerable<TouristRoutePicture>> GetPicturesByTouristRouteIdAsync(Guid touristRouteId);
@@ -18,14 +18,14 @@ namespace Fake.API.Services
         void AddTouristRoutePicture(Guid touristRouteId, TouristRoutePicture touristRoutePicture);
         void DeleteTouristRoute(TouristRoute touristRoute);
         void DeletTouristRoutePicture(TouristRoutePicture touristRoutePicture);
-        Task<ShoppingCart> GetShoppingCartByUserId(string userId);
-        Task CreateShoppingCart(ShoppingCart shoppingCart);
-        Task AddShoppingCartItem(LineItem lineItem);
-        Task<LineItem> GetShoppingCartItemByItemId(int itemId);
+        Task<ShoppingCart> GetShoppingCartByUserIdAsync(string userId);
+        Task CreateShoppingCartAsync(ShoppingCart shoppingCart);
+        Task AddShoppingCartItemAsync(LineItem lineItem);
+        Task<LineItem> GetShoppingCartItemByItemIdAsync(int itemId);
         void DeleteShoppingCartItem(LineItem lineItem);
         Task AddOrderAsync(Order order);
-        Task<PaginationList<Order>> GetOrdersByUserId(string userId, int pageSize, int pageNumber);
-        Task<Order> GetOrderById(Guid orderId);
+        Task<PaginationList<Order>> GetOrdersByUserIdAsync(string userId, int pageSize, int pageNumber);
+        Task<Order> GetOrderByIdAsync(Guid orderId);
         Task<bool> SaveAsync();
     }
 }

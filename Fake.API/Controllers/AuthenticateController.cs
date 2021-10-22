@@ -117,7 +117,7 @@ namespace Fake.API.Controllers
                 UserId = user.Id
             };
 
-            await _touristRouteRepository.CreateShoppingCart(shoppingCart);
+            await _touristRouteRepository.CreateShoppingCartAsync(shoppingCart);
             await _touristRouteRepository.SaveAsync();
 
 

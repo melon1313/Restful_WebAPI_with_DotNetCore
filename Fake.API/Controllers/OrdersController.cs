@@ -47,7 +47,7 @@ namespace Fake.API.Controllers
                 .HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //2. 使用用戶id來獲取訂單歷史紀錄
-            var orders = await _touristRouteRepository.GetOrdersByUserId(userId, pagination.PageSize, pagination.PageNumber);
+            var orders = await _touristRouteRepository.GetOrdersByUserIdAsync(userId, pagination.PageSize, pagination.PageNumber);
 
             var ordersDto = _mapper.Map<IEnumerable<OrderDto>>(orders);
 
@@ -63,7 +63,7 @@ namespace Fake.API.Controllers
                 .HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //2. 獲得訂單數據
-            var order = await _touristRouteRepository.GetOrderById(orderId);
+            var order = await _touristRouteRepository.GetOrderByIdAsync(orderId);
 
             var orderDto = _mapper.Map<OrderDto>(order);
 
@@ -79,7 +79,7 @@ namespace Fake.API.Controllers
                 .HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //2. 開始處理支付
-            var order = await _touristRouteRepository.GetOrderById(orderId);
+            var order = await _touristRouteRepository.GetOrderByIdAsync(orderId);
             order.PaymentProcessing(); //Processing 支付處理中
             await _touristRouteRepository.SaveAsync(); //在向請求第三方支付前，先保存狀態
 

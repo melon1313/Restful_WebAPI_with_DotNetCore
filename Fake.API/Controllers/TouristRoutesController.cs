@@ -85,7 +85,8 @@ namespace Fake.API.Controllers
                 touristRoute.OperatorType, 
                 touristRoute.RatingValue,
                 pagination.PageSize,
-                pagination.PageNumber);
+                pagination.PageNumber,
+                touristRoute.OrderBy);
             if (touristRoutesFromRepo == null || touristRoutesFromRepo.Count() == 0)
             {
                 return NotFound("沒有旅遊路線");

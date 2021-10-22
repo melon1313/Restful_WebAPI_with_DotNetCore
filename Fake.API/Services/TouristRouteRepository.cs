@@ -28,7 +28,7 @@ namespace Fake.API.Services
             return await _context.TouristRoutePictures.Where(item => item.TouristRouteId == touristRouteId).ToListAsync();
         }
 
-        public async Task<PaginationList<TouristRoute>> GetTouristRoutesAsync(string keyword, string operatorType, int? ratingValue, int pageSize, int pageNumber)
+        public async Task<PaginationList<TouristRoute>> GetTouristRoutesAsync(string keyword, string operatorType, int? ratingValue, int pageSize, int pageNumber, string orderBy)
         {
             IQueryable<TouristRoute> result = _context.TouristRoutes.Include(item => item.TouristRoutePictures);
 
@@ -48,6 +48,14 @@ namespace Fake.API.Services
                     "lessthan" => result.Where(item => item.Rating < ratingValue),
                     _ => result.Where(item => item.Rating == ratingValue)
                 };
+            }
+
+            if (!string.IsNullOrEmpty(orderBy))
+            {
+                if (orderBy.ToLowerInvariant() == "originalprice")
+                {
+                    result = result.OrderBy(t => t.OriginPrice);
+                }
             }
 
             return await PaginationList<TouristRoute>.CreateAsync(pageNumber, pageSize, result);
@@ -98,7 +106,7 @@ namespace Fake.API.Services
             return await _context.TouristRoutes.Where(item => touristRoutesId.Contains(item.Id)).ToListAsync();
         }
 
-        public async Task<ShoppingCart> GetShoppingCartByUserId(string userId)
+        public async Task<ShoppingCart> GetShoppingCartByUserIdAsync(string userId)
         {
             return await _context.ShoppingCarts
                 .Include(soppingCart => soppingCart.User)
@@ -108,17 +116,17 @@ namespace Fake.API.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task CreateShoppingCart(ShoppingCart shoppingCart)
+        public async Task CreateShoppingCartAsync(ShoppingCart shoppingCart)
         {
             await _context.ShoppingCarts.AddAsync(shoppingCart);
         }
 
-        public async Task AddShoppingCartItem(LineItem lineItem)
+        public async Task AddShoppingCartItemAsync(LineItem lineItem)
         {
             await _context.LineItems.AddAsync(lineItem);
         }
 
-        public async Task<LineItem> GetShoppingCartItemByItemId(int itemId)
+        public async Task<LineItem> GetShoppingCartItemByItemIdAsync(int itemId)
         {
             return await _context.LineItems
                 .Where(lineItem => lineItem.Id == itemId)
@@ -135,7 +143,7 @@ namespace Fake.API.Services
             await _context.Orders.AddAsync(order);
         }
 
-        public async Task<PaginationList<Order>> GetOrdersByUserId(string userId, int pageSize, int pageNumber)
+        public async Task<PaginationList<Order>> GetOrdersByUserIdAsync(string userId, int pageSize, int pageNumber)
         {
             IQueryable<Order> result = _context.Orders
                 .Where(item => item.UserId == userId);
@@ -143,7 +151,7 @@ namespace Fake.API.Services
             return await PaginationList<Order>.CreateAsync(pageNumber, pageSize, result);  
         }
 
-        public async Task<Order> GetOrderById(Guid orderId)
+        public async Task<Order> GetOrderByIdAsync(Guid orderId)
         {
             return await _context.Orders
                 .Include(item => item.OrderItems)
