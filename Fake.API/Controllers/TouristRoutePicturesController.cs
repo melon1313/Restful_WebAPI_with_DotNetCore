@@ -27,7 +27,7 @@ namespace Fake.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpGet(Name = nameof(GetPictureListForTouristRouteAsync))]
         public async Task<IActionResult> GetPictureListForTouristRouteAsync(Guid touristRouteId)
         {
             if (!await _touristRouteRepository.TouristRouteExistsAsync(touristRouteId))
@@ -65,7 +65,7 @@ namespace Fake.API.Controllers
             return Ok(pictureDto);
         }
 
-        [HttpPost]
+        [HttpPost(Name = nameof(CreateTouristRoutePictureAsync))]
         [Authorize(AuthenticationSchemes = "Bearer")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTouristRoutePictureAsync(
