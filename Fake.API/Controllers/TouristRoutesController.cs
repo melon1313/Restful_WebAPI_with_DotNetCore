@@ -47,6 +47,7 @@ namespace Fake.API.Controllers
                 ResourceUriType.PreviousPage => _urlHelper.Link(nameof(GetTouristRoutesAsync),
                     new
                     {
+                        fileds = touristRoute.Fields,
                         keyword = touristRoute.Keyword,
                         rating = touristRoute.Rating,
                         pageNumber = pagination.PageNumber -1,
@@ -56,6 +57,7 @@ namespace Fake.API.Controllers
                 ResourceUriType.NextPage => _urlHelper.Link(nameof(GetTouristRoutesAsync),
                    new
                    {
+                       fileds = touristRoute.Fields,
                        keyword = touristRoute.Keyword,
                        rating = touristRoute.Rating,
                        pageNumber = pagination.PageNumber + 1,
@@ -65,6 +67,7 @@ namespace Fake.API.Controllers
                _ => _urlHelper.Link(nameof(GetTouristRoutesAsync),
                    new
                    {
+                       fileds = touristRoute.Fields,
                        keyword = touristRoute.Keyword,
                        rating = touristRoute.Rating,
                        pageNumber = pagination.PageNumber,
@@ -111,11 +114,11 @@ namespace Fake.API.Controllers
             Response.Headers.Add("x-pagination",
                 Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
 
-            return Ok(touristRouteDto);
+            return Ok(touristRouteDto.ShapeData(touristRoute.Fields));
         }
 
         [HttpGet("{touristRouteId}", Name = "GetTouristRoutesByIdAsync")] //Name: route Name
-        public async Task<IActionResult> GetTouristRoutesByIdAsync(Guid touristRouteId)
+        public async Task<IActionResult> GetTouristRoutesByIdAsync([FromRoute]Guid touristRouteId, [FromQuery]string fields)
         {
             var touristRouteFromRepo = await _touristRouteRepository.GetTouristRouteAsync(touristRouteId);
             if (touristRouteFromRepo == null)
@@ -130,7 +133,7 @@ namespace Fake.API.Controllers
             //};
 
             var touristRouteDto = _mapper.Map<TouristRouteDto>(touristRouteFromRepo);
-            return Ok(touristRouteDto);
+            return Ok(touristRouteDto.ShapData(fields));
         }
 
         [HttpPost]

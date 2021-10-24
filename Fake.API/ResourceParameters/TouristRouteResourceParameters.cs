@@ -9,7 +9,8 @@ namespace Fake.API.ResourceParameters
     public class TouristRouteResourceParameters
     {
         private string _rating;
-        
+
+        public string Fields { get; set; }
         public string OrderBy { get; set; }
         public string OperatorType { get; set; }
         public int? RatingValue { get; set; }
