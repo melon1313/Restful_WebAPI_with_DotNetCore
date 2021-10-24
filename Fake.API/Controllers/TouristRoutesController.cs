@@ -9,6 +9,7 @@ using Fake.API.Helper;
 using Fake.API.Models;
 using Fake.API.ResourceParameters;
 using Fake.API.Services;
+using Fake.API.ValidationAttributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
@@ -118,13 +119,15 @@ namespace Fake.API.Controllers
         }
 
         [HttpGet("{touristRouteId}", Name = "GetTouristRoutesByIdAsync")] //Name: route Name
-        public async Task<IActionResult> GetTouristRoutesByIdAsync([FromRoute]Guid touristRouteId, [FromQuery]string fields)
+        public async Task<IActionResult> GetTouristRoutesByIdAsync([FromRoute]Guid touristRouteId, [FromQuery] string fields)
         {
             var touristRouteFromRepo = await _touristRouteRepository.GetTouristRouteAsync(touristRouteId);
             if (touristRouteFromRepo == null)
             {
                 return NotFound($@"旅遊路線{touristRouteId}找不到!");
             }
+
+            if (!fields.IsPropertiesExists<TouristRouteDto>()) { return BadRequest("請輸入正確的塑形參數!"); }
 
             //var touristRouteDto = new TouristRouteDto()
             //{
