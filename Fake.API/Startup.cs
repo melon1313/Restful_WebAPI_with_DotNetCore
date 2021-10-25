@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -79,6 +81,18 @@ namespace Fake.API
             services.AddHttpClient();
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            services.Configure<MvcOptions>(
+                config =>
+                {
+                    var outputFormatter = config.OutputFormatters.OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
+
+                    if(outputFormatter != null)
+                    {
+                        outputFormatter.SupportedMediaTypes.Add("application/vnd.alice.hateoas+json");
+                    }
+                }    
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

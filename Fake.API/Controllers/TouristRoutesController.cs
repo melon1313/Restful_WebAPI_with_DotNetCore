@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Net.Http.Headers;
 
 namespace Fake.API.Controllers
 {
@@ -79,11 +80,19 @@ namespace Fake.API.Controllers
             };
         }
 
+        //application/json -> 旅遊路線資源
+        //application/vnd.alice.hateoas+json -> 旅遊路線資源+自我發現連結
         [HttpGet(Name = nameof(GetTouristRoutesAsync))]
         public async Task<IActionResult> GetTouristRoutesAsync(
             [FromQuery] TouristRouteResourceParameters touristRoute,
-            [FromQuery] PaginationResourceParameters pagination)
+            [FromQuery] PaginationResourceParameters pagination,
+            [FromHeader(Name = "Accept")] string mediaType)
         {
+            if(!MediaTypeHeaderValue.TryParse(mediaType, out MediaTypeHeaderValue parseMediaType))
+            {
+                return BadRequest();
+            }
+
             var touristRoutesFromRepo = await _touristRouteRepository
                 .GetTouristRoutesAsync(
                 touristRoute.Keyword, 
@@ -117,20 +126,26 @@ namespace Fake.API.Controllers
                 Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
 
             var shapeDtoList = touristRouteDto.ShapeData(touristRoute.Fields);
-            var linkDto = CreateLinkForTouristRouteList(touristRoute, pagination);
+            
+            if(parseMediaType.MediaType == "application/vnd.alice.hateoas+json")
+            {
+                var linkDto = CreateLinkForTouristRouteList(touristRoute, pagination);
 
-            IDictionary<string, object> touristRouteDictionary = null;
-            var shapeDtoWithLinkList = shapeDtoList.Select(
-                data => {
-                    touristRouteDictionary = data as IDictionary<string, object>;
-                    touristRouteDictionary.Add("links", CreateLinkForTouristRoute((Guid)touristRouteDictionary["Id"], touristRoute.Fields));
+                IDictionary<string, object> touristRouteDictionary = null;
+                var shapeDtoWithLinkList = shapeDtoList.Select(
+                    data => {
+                        touristRouteDictionary = data as IDictionary<string, object>;
+                        touristRouteDictionary.Add("links", CreateLinkForTouristRoute((Guid)touristRouteDictionary["Id"], touristRoute.Fields));
 
-                    return touristRouteDictionary;
-                });
+                        return touristRouteDictionary;
+                    });
 
-            var result = new {values = shapeDtoWithLinkList, links = linkDto };
+                var result = new { values = shapeDtoWithLinkList, links = linkDto };
 
-            return Ok(result);
+                return Ok(result);
+            }
+
+            return Ok(shapeDtoList);
         }
 
         private IEnumerable<LinkDto> CreateLinkForTouristRouteList(
