@@ -8,6 +8,7 @@ namespace Fake.API.Helper
     public enum ResourceUriType
     {
         PreviousPage,
-        NextPage
+        NextPage,
+        CurrentPage
     }
 }

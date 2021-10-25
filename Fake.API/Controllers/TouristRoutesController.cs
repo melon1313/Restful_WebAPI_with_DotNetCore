@@ -116,7 +116,44 @@ namespace Fake.API.Controllers
             Response.Headers.Add("x-pagination",
                 Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
 
-            return Ok(touristRouteDto.ShapeData(touristRoute.Fields));
+            var shapeDtoList = touristRouteDto.ShapeData(touristRoute.Fields);
+            var linkDto = CreateLinkForTouristRouteList(touristRoute, pagination);
+
+            IDictionary<string, object> touristRouteDictionary = null;
+            var shapeDtoWithLinkList = shapeDtoList.Select(
+                data => {
+                    touristRouteDictionary = data as IDictionary<string, object>;
+                    touristRouteDictionary.Add("links", CreateLinkForTouristRoute((Guid)touristRouteDictionary["Id"], touristRoute.Fields));
+
+                    return touristRouteDictionary;
+                });
+
+            var result = new {values = shapeDtoWithLinkList, links = linkDto };
+
+            return Ok(result);
+        }
+
+        private IEnumerable<LinkDto> CreateLinkForTouristRouteList(
+                TouristRouteResourceParameters touristRoute,
+                PaginationResourceParameters pagination
+            )
+        {
+            var links = new List<LinkDto>();
+            //添加self自我連接
+            links.Add(new LinkDto(
+                    GenerateTouristRouteResourceURL(touristRoute, pagination, ResourceUriType.CurrentPage),
+                    "self",
+                    "GET"
+                ));
+
+            //添加創建旅遊路線
+            links.Add(new LinkDto(
+                    Url.Link(nameof(CreateTouristRouteAsync), null),
+                    "create_tourist_route",
+                    "POST"
+                    ));
+
+            return links;
         }
 
         [HttpGet("{touristRouteId}", Name = "GetTouristRoutesByIdAsync")] //Name: route Name
@@ -205,9 +242,9 @@ namespace Fake.API.Controllers
         }
 
 
-        [HttpPost]
-        //[Authorize(AuthenticationSchemes = "Bearer")]
-        //[Authorize(Roles = "Admin")]
+        [HttpPost(Name = nameof(CreateTouristRouteAsync))]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTouristRouteAsync([FromBody] TouristRouteForCreationDto touristRouteForCreationDto)
         {
             var touristRouteModel = _mapper.Map<TouristRoute>(touristRouteForCreationDto);
