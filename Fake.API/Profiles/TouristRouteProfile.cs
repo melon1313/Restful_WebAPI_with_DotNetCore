@@ -37,7 +37,13 @@ namespace Fake.API.Profiles
                 );
 
             CreateMap<TouristRouteForUpdateDto, TouristRoute>();
+
             CreateMap<TouristRoute, TouristRouteForUpdateDto>();
+
+            CreateMap<TouristRoute, TouristRouteSimplifyDto>().ForMember(
+                dest => dest.Price,
+                opt => opt.MapFrom(src => src.OriginPrice * (decimal)(src.DiscountPresent ?? 1))
+            );
         }
     }
 }

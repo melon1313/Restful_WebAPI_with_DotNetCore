@@ -82,6 +82,14 @@ namespace Fake.API.Controllers
 
         //application/json -> 旅遊路線資源
         //application/vnd.alice.hateoas+json -> 旅遊路線資源+自我發現連結
+        //application/vnd.alice.touristRoute.simplify+json -> 輸出簡化版資源數據
+        //application/vnd.alice.touristRoute.simplify.hateoas+json -> 輸出簡化版資源數據+自我發現連結
+        [Produces(
+            "application/json",
+            "application/vnd.alice.hateoas+json",
+            "application/vnd.alice.touristRoute.simplify+json",
+            "application/vnd.alice.touristRoute.simplify.hateoas+json"
+        )]
         [HttpGet(Name = nameof(GetTouristRoutesAsync))]
         public async Task<IActionResult> GetTouristRoutesAsync(
             [FromQuery] TouristRouteResourceParameters touristRoute,
@@ -106,8 +114,7 @@ namespace Fake.API.Controllers
                 return NotFound("沒有旅遊路線");
             }
 
-            var touristRouteDto = _mapper.Map<IEnumerable<TouristRouteDto>>(touristRoutesFromRepo);
-
+           
             var previousPageLink = touristRoutesFromRepo.HasPrevious ? GenerateTouristRouteResourceURL(touristRoute, pagination, ResourceUriType.PreviousPage) : null;
             var nextPageLink = touristRoutesFromRepo.HasNext ? GenerateTouristRouteResourceURL(touristRoute, pagination, ResourceUriType.NextPage) : null;
 
@@ -125,9 +132,31 @@ namespace Fake.API.Controllers
             Response.Headers.Add("x-pagination",
                 Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
 
-            var shapeDtoList = touristRouteDto.ShapeData(touristRoute.Fields);
-            
-            if(parseMediaType.MediaType == "application/vnd.alice.hateoas+json")
+            bool isHateoas = parseMediaType.SubTypeWithoutSuffix
+                .EndsWith("hateoas", StringComparison.InvariantCultureIgnoreCase);
+
+            var primaryMediaType = isHateoas ? 
+                    parseMediaType.SubTypeWithoutSuffix.Substring(0, parseMediaType.SubTypeWithoutSuffix.Length - 8)
+                    : parseMediaType.SubTypeWithoutSuffix;
+
+            //var touristRouteDto = _mapper.Map<IEnumerable<TouristRouteDto>>(touristRoutesFromRepo);
+            //var shapeDtoList = touristRouteDto.ShapeData(touristRoute.Fields);
+
+            IEnumerable<object> touristRouteDto;
+            IEnumerable<ExpandoObject> shapeDtoList;
+
+            if(primaryMediaType == "vnd.alice.touristRoute.simplify")
+            {
+                touristRouteDto = _mapper.Map<IEnumerable<TouristRouteSimplifyDto>>(touristRoutesFromRepo);
+                shapeDtoList = ((IEnumerable<TouristRouteSimplifyDto>)touristRouteDto).ShapeData(touristRoute.Fields);
+            }
+            else
+            {
+                touristRouteDto = _mapper.Map<IEnumerable<TouristRouteDto>>(touristRoutesFromRepo);
+                shapeDtoList = ((IEnumerable<TouristRouteDto>)touristRouteDto).ShapeData(touristRoute.Fields);
+            }
+
+            if (isHateoas)
             {
                 var linkDto = CreateLinkForTouristRouteList(touristRoute, pagination);
 
