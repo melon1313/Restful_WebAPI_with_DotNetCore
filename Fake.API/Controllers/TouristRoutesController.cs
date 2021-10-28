@@ -91,7 +91,10 @@ namespace Fake.API.Controllers
             "application/vnd.alice.touristRoute.simplify.hateoas+json"
         )]
         [HttpGet(Name = nameof(GetTouristRoutesAsync))]
-        [ResponseCache(Duration = 60, VaryByQueryKeys = new string[] { "fields", "keyword" })]
+        [ResponseCache(
+            Duration = 60, 
+            VaryByQueryKeys = new string[] { "fields", "keyword" },
+            VaryByHeader = "Accept")]
         public async Task<IActionResult> GetTouristRoutesAsync(
             [FromQuery] TouristRouteResourceParameters touristRoute,
             [FromQuery] PaginationResourceParameters pagination,
